@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 const TreeStructure = ({ jsonData, highlightedNodeId }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
+  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, content: "" });
 
   // 🧠 Generate tree whenever JSON changes
   useEffect(() => {
@@ -76,30 +77,40 @@ const TreeStructure = ({ jsonData, highlightedNodeId }) => {
     id.toLowerCase().includes(highlightedNodeId.toLowerCase());
 
   nodes.push({
-    id,
-    data: { label },
-    position: { x: depth * 300, y: index * 130 },
-    style: {
-      background: isHighlighted
+  id,
+  data: { 
+    label,
+    fullPath: parentId ? `${parentId}.${keyName}` : `$${keyName}`, // build JSON path
+    value: typeof data === "object" ? "[Object/Array]" : String(data)
+  },
+  position: { x: depth * 300, y: index * 130 },
+  style: {
+    background:
+      isHighlighted
         ? "#ef4444"
         : bgColor === "bg-blue-600"
         ? "#2563eb"
         : bgColor === "bg-green-600"
         ? "#16a34a"
         : "#eab308",
-      color: "white",
-      padding: 10,
-      borderRadius: 8,
-      fontSize: 12,
-      border: isHighlighted ? "2px solid white" : "1px solid #333",
-      textAlign: "center",
-      minWidth: 120,
-      boxShadow: isHighlighted
-        ? "0 0 12px 4px rgba(239,68,68,0.8)"
-        : "0 0 6px rgba(0,0,0,0.3)",
-      transition: "all 0.3s ease",
-    },
-  });
+    color: "white",
+    padding: 10,
+    borderRadius: 8,
+    fontSize: 12,
+    border: isHighlighted ? "2px solid white" : "1px solid #333",
+    textAlign: "center",
+    minWidth: 120,
+    boxShadow: isHighlighted
+      ? "0 0 12px 4px rgba(239,68,68,0.8)"
+      : "0 0 6px rgba(0,0,0,0.3)",
+    transition: "all 0.3s ease",
+  },
+  // 🪄 Here's the new part: show tooltip info on hover
+  title: `Path: ${parentId ? parentId + "." + keyName : "$." + keyName}\nValue: ${
+    typeof data === "object" ? "[Object/Array]" : String(data)
+  }`,
+});
+
 
   if (parentId) {
     edges.push({
@@ -124,23 +135,46 @@ const TreeStructure = ({ jsonData, highlightedNodeId }) => {
 
 
   return (
-    <div className="w-full h-[calc(100vh-4rem)] bg-gray-900">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        fitView
-        defaultEdgeOptions={{
-          type: "straight",
-          style: { stroke: "#38bdf8", strokeWidth: 2 },
-        }}
-      >
-        {/* 👇 Runs safely inside ReactFlow’s context */}
-        <AutoPanToNode highlightedNodeId={highlightedNodeId} nodes={nodes} />
+    <div className="w-full h-[calc(100vh-4rem)] bg-gray-900 relative">
+  <ReactFlow
+    nodes={nodes}
+    edges={edges}
+    fitView
+    onNodeMouseEnter={(_, node) => {
+      setTooltip({
+        visible: true,
+        x: node.position.x + 250, // adjust for better alignment
+        y: node.position.y + 100,
+        content: `Path: ${node.data.fullPath}\nValue: ${node.data.value}`,
+      });
+    }}
+    onNodeMouseLeave={() => setTooltip({ visible: false, x: 0, y: 0, content: "" })}
+    defaultEdgeOptions={{
+      type: "straight",
+      style: { stroke: "#38bdf8", strokeWidth: 2 },
+    }}
+  >
+    <Controls />
+    <Background variant="dots" gap={15} size={1} color="#555" />
+  </ReactFlow>
 
-        <Controls />
-        <Background variant="dots" gap={15} size={1} color="#555" />
-      </ReactFlow>
+  {/* 🪄 Tooltip box */}
+  {tooltip.visible && (
+    <div
+      className="absolute text-xs text-white bg-gray-800 border border-gray-600 rounded-md p-2 pointer-events-none whitespace-pre-line"
+      style={{
+        left: tooltip.x,
+        top: tooltip.y,
+        transform: "translate(-50%, -120%)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+        zIndex: 10,
+      }}
+    >
+      {tooltip.content}
     </div>
+  )}
+</div>
+
   );
 };
 
