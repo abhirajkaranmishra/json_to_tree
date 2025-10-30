@@ -1,16 +1,46 @@
-# React + Vite
+1. JSON Tree Visualizer:-
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive JSON Tree Visualizer built with React and React Flow.
+This app lets you paste or type JSON data, visualize it as a dynamic, hierarchical node tree, search by JSON path, and even download the full visualization as an image.
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
+2. Features:-
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+JSON Parsing & Validation — Instantly parse and validate your JSON input.
 
-## Expanding the ESLint configuration
+Visualize Structure — Render JSON as an expandable, color-coded tree using React Flow.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Search by Path — Highlight and auto-center any node by JSON path (e.g., $.user.address.city).
+
+Light / Dark Theme — Seamlessly switch between light and dark modes.
+
+Clear View — Quickly reset input and visualization with a single click.
+
+Download as Image — Export the current tree view as a .png file using html-to-image.
+
+
+
+3. Tech Stack:-
+
+Frontend - React 18, Vite
+
+Visualization - React Flow
+
+Image Export - html-to-image
+
+Styling - Tailwind CSS
+
+
+
+4. Setup Instructions
+
+Clone the repository - git clone https://github.com/abhirajkaranmishra/json_to_tree.git
+
+Install dependencies - npm install
+
+Start the development server - npm run dev
+
+Then open your browser and navigate to - http://localhost:5173
+
+To create an optimized production build - npm run build
