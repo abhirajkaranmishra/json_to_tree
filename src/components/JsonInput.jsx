@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const JsonInput = ({ onVisualize, theme }) => {
+const JsonInput = ({ onVisualize, theme,  clearSignal }) => {
   const [jsonText, setJsonText] = useState(`{
   "user": {
-    "name": "Ganesh",
+    "name": "Abhiraj",
     "age": 22,
-    "skills": ["React", "Node", "Firebase"]
+    "skills": ["React", "Node", "c/c++"]
   }
 }`);
   const [error, setError] = useState('');
@@ -14,11 +14,18 @@ const JsonInput = ({ onVisualize, theme }) => {
     try {
       const parsed = JSON.parse(jsonText);
       setError('');
-      onVisualize(parsed); // Pass JSON data to parent
+      onVisualize(parsed);
     } catch (e) {
       setError('Invalid JSON format. Please correct it.');
     }
   };
+
+  useEffect(() => {
+   if (clearSignal !== null) { 
+    setJsonText("");
+   }
+  }, [clearSignal]);
+
 
   return (
     <div className={`w-1/2 p-6 flex flex-col ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"}`}>

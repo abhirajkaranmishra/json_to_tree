@@ -1,11 +1,7 @@
-import ReactFlow, {
-  Background,
-  Controls,
-  useReactFlow,
-  ReactFlowProvider,
-} from "reactflow";
+import ReactFlow, {Background, Controls,useReactFlow, ReactFlowProvider,} from "reactflow";
 import "reactflow/dist/style.css";
 import React, { useEffect, useState, useRef } from "react";
+import { generateTree } from "../utils/generateTree"; 
 
 const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
   const [nodes, setNodes] = useState([]);
@@ -18,9 +14,8 @@ const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
   });
 
   const { fitView } = useReactFlow();
-  const nodesRef = useRef([]); // ✅ Always store latest nodes
+  const nodesRef = useRef([]);
 
-  // 🧠 Build tree nodes whenever JSON changes
   useEffect(() => {
     if (!jsonData) return;
 
@@ -29,23 +24,21 @@ const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
         const entries = Object.entries(jsonData);
         if (entries.length === 1) {
           const [key, value] = entries[0];
-          return generateTree(value, null, 0, 0, key);
+          return generateTree(value, null, 0, 0, key, theme);
         }
       }
-      return generateTree(jsonData);
+      return generateTree(jsonData, null, 0, 0, "root", theme); 
     };
 
     const { nodes, edges } = build();
     setNodes(nodes);
-    nodesRef.current = nodes; // ✅ keep latest nodes reference
+    nodesRef.current = nodes;
     setEdges(edges);
-  }, [jsonData]);
+  }, [jsonData, theme]);
 
-  // 🧭 Auto center & highlight searched node
   useEffect(() => {
     if (!highlightedNodeId) return;
 
-    // Highlight node visually
     setNodes((nds) => {
       const updated = nds.map((n) => {
         const isTarget = n.id
@@ -64,11 +57,10 @@ const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
           },
         };
       });
-      nodesRef.current = updated; // update ref immediately
+      nodesRef.current = updated;
       return updated;
     });
 
-    // ✅ Delay fitView until nodes are actually rendered
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const currentNodes = nodesRef.current;
@@ -90,76 +82,6 @@ const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
       });
     });
   }, [highlightedNodeId, fitView]);
-
-  // 🔧 Recursive JSON → nodes and edges
-  const generateTree = (
-    data,
-    parentId = null,
-    depth = 0,
-    index = 0,
-    keyName = "root"
-  ) => {
-    const nodes = [];
-    const edges = [];
-
-    const id = parentId ? `${parentId}-${keyName}` : keyName;
-
-    let label = "";
-    let bgColor = "";
-    if (typeof data === "object" && data !== null) {
-      if (Array.isArray(data)) {
-        label = `${keyName} [Array]`;
-        bgColor = "#16a34a"; // green
-      } else {
-        label = `${keyName} {Object}`;
-        bgColor = "#2563eb"; // blue
-      }
-    } else {
-      label = `${keyName}: ${String(data)}`;
-      bgColor = "#eab308"; // yellow
-    }
-
-    nodes.push({
-      id,
-      data: {
-        label,
-        fullPath: parentId ? `${parentId}.${keyName}` : `$${keyName}`,
-        value: typeof data === "object" ? "[Object/Array]" : String(data),
-      },
-      position: { x: depth * 300, y: index * 130 },
-      style: {
-        background: bgColor,
-        color: theme === "dark" ? "white" : "black",
-        padding: 10,
-        borderRadius: 8,
-        fontSize: 12,
-        border: "1px solid #333",
-        textAlign: "center",
-        minWidth: 120,
-        boxShadow: "0 0 6px rgba(0,0,0,0.3)",
-      },
-    });
-
-    if (parentId) {
-      edges.push({
-        id: `edge-${parentId}-${id}`,
-        source: parentId,
-        target: id,
-        type: "straight",
-      });
-    }
-
-    if (typeof data === "object" && data !== null) {
-      let childIndex = 0;
-      for (const [key, value] of Object.entries(data)) {
-        const childTree = generateTree(value, id, depth + 1, childIndex++, key);
-        nodes.push(...childTree.nodes);
-        edges.push(...childTree.edges);
-      }
-    }
-
-    return { nodes, edges };
-  };
 
   return (
     <div
@@ -214,7 +136,6 @@ const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
   );
 };
 
-// ✅ Provider wrapper
 const TreeStructure = (props) => (
   <ReactFlowProvider>
     <TreeStructureInner {...props} />
