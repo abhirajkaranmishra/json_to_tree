@@ -1,7 +1,13 @@
-import ReactFlow, {Background, Controls,useReactFlow, ReactFlowProvider,} from "reactflow";
+import ReactFlow, {
+  Background,
+  Controls,
+  useReactFlow,
+  ReactFlowProvider,
+} from "reactflow";
 import "reactflow/dist/style.css";
 import React, { useEffect, useState, useRef } from "react";
-import { generateTree } from "../utils/generateTree"; 
+import { generateTree } from "../utils/generateTree";
+import * as htmlToImage from "html-to-image"; 
 
 const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
   const [nodes, setNodes] = useState([]);
@@ -15,6 +21,7 @@ const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
 
   const { fitView } = useReactFlow();
   const nodesRef = useRef([]);
+  const flowRef = useRef(null); 
 
   useEffect(() => {
     if (!jsonData) return;
@@ -27,7 +34,7 @@ const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
           return generateTree(value, null, 0, 0, key, theme);
         }
       }
-      return generateTree(jsonData, null, 0, 0, "root", theme); 
+      return generateTree(jsonData, null, 0, 0, "root", theme);
     };
 
     const { nodes, edges } = build();
@@ -83,40 +90,70 @@ const TreeStructureInner = ({ jsonData, highlightedNodeId, theme }) => {
     });
   }, [highlightedNodeId, fitView]);
 
+  const handleDownload = async () => {
+    if (!flowRef.current) return;
+
+    try {
+      const dataUrl = await htmlToImage.toPng(flowRef.current);
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = "json-tree.png";
+      link.click();
+    } catch (error) {
+      console.error("Image download failed:", error);
+    }
+  };
+
   return (
     <div
       className={`w-full h-[calc(100vh-4rem)] ${
         theme === "dark" ? "bg-gray-900" : "bg-gray-100"
       } relative`}
     >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        fitView
-        onNodeMouseEnter={(_, node) => {
-          setTooltip({
-            visible: true,
-            x: node.position.x + 250,
-            y: node.position.y + 100,
-            content: `Path: ${node.data.fullPath}\nValue: ${node.data.value}`,
-          });
-        }}
-        onNodeMouseLeave={() =>
-          setTooltip({ visible: false, x: 0, y: 0, content: "" })
-        }
-        defaultEdgeOptions={{
-          type: "straight",
-          style: { stroke: "#38bdf8", strokeWidth: 2 },
-        }}
-      >
-        <Controls />
-        <Background
-          variant="dots"
-          gap={15}
-          size={1}
-          color={theme === "dark" ? "#555" : "#aaa"}
-        />
-      </ReactFlow>
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={handleDownload}
+          className={`px-3 py-1 rounded-md text-sm font-medium shadow-md transition-colors duration-300 ${
+            theme === "dark"
+              ? "bg-gray-700 text-white hover:bg-gray-600"
+              : "bg-gray-200 text-black hover:bg-gray-300"
+          }`}
+        >
+          Download Tree
+        </button>
+      </div>
+
+      {/* ReactFlow Visualization */}
+      <div ref={flowRef} className="w-full h-full">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          fitView
+          onNodeMouseEnter={(_, node) => {
+            setTooltip({
+              visible: true,
+              x: node.position.x + 250,
+              y: node.position.y + 100,
+              content: `Path: ${node.data.fullPath}\nValue: ${node.data.value}`,
+            });
+          }}
+          onNodeMouseLeave={() =>
+            setTooltip({ visible: false, x: 0, y: 0, content: "" })
+          }
+          defaultEdgeOptions={{
+            type: "straight",
+            style: { stroke: "#38bdf8", strokeWidth: 2 },
+          }}
+        >
+          <Controls />
+          <Background
+            variant="dots"
+            gap={15}
+            size={1}
+            color={theme === "dark" ? "#555" : "#aaa"}
+          />
+        </ReactFlow>
+      </div>
 
       {tooltip.visible && (
         <div
