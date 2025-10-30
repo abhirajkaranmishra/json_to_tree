@@ -1,21 +1,23 @@
 import React, { useState } from "react";
 import JsonInput from "./components/JsonInput";
 import TreeStructure from "./components/TreeStructure";
+import SearchBar from "./components/SearchBar";
 import "./index.css";
 
 const App = () => {
   const [jsonData, setJsonData] = useState(null);
   const [highlightedNodeId, setHighlightedNodeId] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
+  const [theme, setTheme] = useState("dark");
 
   // ✅ Convert JSONPath (e.g. $.user.skills[0]) → internal ID fragment
   const normalizePathToId = (path) => {
     if (!path) return "";
     return path
-      .replace(/^\$\./, "") // remove leading "$."
-      .replace(/\[/g, "-") // convert [0] → -0
-      .replace(/\]/g, "") // remove ]
-      .replace(/\./g, "-"); // convert dots → dashes
+      .replace(/^\$\./, "")
+      .replace(/\[/g, "-")
+      .replace(/\]/g, "")
+      .replace(/\./g, "-");
   };
 
   const handleVisualize = (data) => {
@@ -24,17 +26,14 @@ const App = () => {
     setSearchMessage("");
   };
 
-  // 🧠 Search handler: finds path, triggers highlight
-  const handleSearch = () => {
-    const query = document.getElementById("searchInput").value.trim();
+  // 🔍 Search Handler
+  const handleSearch = (query) => {
     if (!query) {
       setSearchMessage("Please enter a path (e.g. $.user.skills[0])");
       return;
     }
 
     const normalized = normalizePathToId(query);
-
-    // ✅ Check if node exists by comparing normalized ID pattern
     const nodeExists = findNodeExists(jsonData, normalized);
 
     if (nodeExists) {
@@ -46,7 +45,7 @@ const App = () => {
     }
   };
 
-  // 🔍 Recursive check if JSON path exists
+  // Recursive check
   const findNodeExists = (data, normalizedPath) => {
     if (!data) return false;
     const parts = normalizedPath.split("-");
@@ -64,52 +63,66 @@ const App = () => {
         return false;
       }
     }
-
     return true;
   };
 
-  return (
-    <div className="w-screen h-screen flex flex-col bg-white">
-      <header className="py-4 bg-white text-center shadow-md">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          JSON Tree Visualizer
-        </h1>
-      </header>
+  // 🧹 Clear / Reset everything
+  const handleClear = () => {
+    setJsonData(null);
+    setHighlightedNodeId("");
+    setSearchMessage("");
+  };
 
-      {/* 🔍 Search Bar */}
-      <div className="flex items-center justify-center gap-2 py-3 bg-gray-100 border-b border-gray-300">
-        <input
-          id="searchInput"
-          type="text"
-          placeholder="Search by JSON path (e.g. $.user.skills[0])"
-          className="w-1/2 px-4 py-2 border border-gray-400 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={handleSearch}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
-        >
-          Search
-        </button>
-        {searchMessage && (
-          <span
-            className={`text-sm ${
-              searchMessage.includes("✅")
-                ? "text-green-600"
-                : searchMessage.includes("❌")
-                ? "text-red-500"
-                : "text-gray-700"
+  return (
+    <div className="w-screen h-screen flex flex-col">
+      {/* Header with theme + clear */}
+      <header
+        className={`py-4 text-center shadow-md transition-colors duration-300 ${
+          theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-300 text-gray-800"
+        }`}
+      >
+        <h1 className="text-2xl font-semibold">JSON Tree Visualizer</h1>
+
+        <div className="mt-2 flex justify-center gap-3">
+          {/* 🌗 Theme toggle */}
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className={`px-4 py-1 border rounded-md text-sm transition-colors duration-300 ${
+              theme === "dark"
+                ? "border-gray-500 hover:bg-gray-700 hover:text-white"
+                : "border-gray-400 hover:bg-gray-200 hover:text-black"
             }`}
           >
-            {searchMessage}
-          </span>
-        )}
-      </div>
+            {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+          </button>
 
-      <main className="flex flex-1">
-        <JsonInput onVisualize={handleVisualize} />
+          {/* 🧹 Clear Button */}
+          <button
+            onClick={handleClear}
+            className={`px-4 py-1 border rounded-md text-sm transition-colors duration-300 ${
+              theme === "dark"
+                ? "border-red-400 text-red-400 hover:bg-red-600 hover:text-white"
+                : "border-red-500 text-red-600 hover:bg-red-100"
+            }`}
+          >
+            🔄 Clear
+          </button>
+        </div>
+      </header>
+
+      {/* 🔍 SearchBar */}
+      <SearchBar onSearch={handleSearch} searchMessage={searchMessage} theme={theme} />
+
+      <main
+        className={`flex flex-1 transition-colors duration-300 ${
+          theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"
+        }`}
+      >
+        <JsonInput onVisualize={handleVisualize} theme={theme} />
         <TreeStructure
           jsonData={jsonData}
           highlightedNodeId={highlightedNodeId}
+          theme={theme}
         />
       </main>
     </div>

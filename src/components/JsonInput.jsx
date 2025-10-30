@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const JsonInput = ({ onVisualize }) => {
+const JsonInput = ({ onVisualize, theme }) => {
   const [jsonText, setJsonText] = useState(`{
   "user": {
     "name": "Ganesh",
@@ -21,23 +21,33 @@ const JsonInput = ({ onVisualize }) => {
   };
 
   return (
-    <div className="w-1/2 p-6 flex flex-col">
-      <h2 className="text-lg font-semibold mb-2 text-blue-400">Enter JSON</h2>
-      <textarea
-        className="w-full h-72 p-3 bg-white rounded-md text-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        value={jsonText}
-        onChange={(e) => setJsonText(e.target.value)}
-      ></textarea>
+    <div className={`w-1/2 p-6 flex flex-col ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"}`}>
+  <h2 className="text-lg font-semibold mb-2 text-blue-400">Enter JSON</h2>
 
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+  <textarea
+    className={`w-full h-72 p-3 rounded-md text-sm border focus:outline-none focus:ring-2 ${
+      theme === "dark"
+        ? "bg-gray-800 border-gray-600 text-white focus:ring-blue-400"
+        : "bg-white border-gray-300 text-black focus:ring-blue-600"
+    }`}
+    value={jsonText}
+    onChange={(e) => setJsonText(e.target.value)}
+  ></textarea>
 
-      <button
-        onClick={handleVisualize}
-        className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold"
-      >
-        Visualize
-      </button>
-    </div>
+  {error && <p className="text-red-500 mt-2">{error}</p>}
+
+  <button
+    onClick={handleVisualize}
+    className={`mt-4 px-4 py-2 rounded-lg font-semibold ${
+      theme === "dark"
+        ? "bg-blue-600 hover:bg-blue-700 text-white"
+        : "bg-blue-500 hover:bg-blue-600 text-white"
+    }`}
+  >
+    Visualize
+  </button>
+</div>
+
   );
 };
 
